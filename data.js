@@ -7,7 +7,7 @@ const RES = ["Deekshith THANUKU", "Sara EBRAHIM ALI MOHAMED AHMED", "Muhammad Fa
 const TYPES = ["Vacation", "Sick Leave", "Casual", "Birthday"];
 
 // Short aliases used in the rows below
-const D = "Deekshith THANUKU", S = "Sara EBRAHIM ALI MOHAMED AHMED", B = "Bishnu Kumar BHAGAT";
+const D = "Deekshith THANUKU", S = "Sara EBRAHIM ALI MOHAMED AHMED", B = "Bishnu Kumar BHAGAT", F = "Muhammad Farhan IQBAL";
 const A = "Approved", P = "Pending";
 
 // Leave rows: [resource, leave type, start (YYYY-MM-DD), end (YYYY-MM-DD), status]
@@ -20,6 +20,7 @@ const LEAVE_DATA = [
 [S,"Vacation","2026-08-24","2026-08-24",A],[S,"Vacation","2026-11-23","2026-12-06",P],[S,"Vacation","2026-12-28","2026-12-31",P],
 [B,"Sick Leave","2026-02-02","2026-02-03",A],[B,"Vacation","2026-03-11","2026-03-13",A],[B,"Sick Leave","2026-06-12","2026-06-15",A],
 [B,"Vacation","2026-08-04","2026-08-07",A],[B,"Sick Leave","2026-09-23","2026-09-24",A],
-[B,"Birthday","2026-11-09","2026-11-09",P],[B,"Vacation","2026-11-10","2026-11-13",P],[B,"Vacation","2026-12-01","2026-12-02",P],
-[B,"Vacation","2026-12-21","2026-12-24",P],[B,"Vacation","2026-12-28","2026-12-31",P]
+[B,"Birthday","2026-11-09","2026-11-09",P],[B,"Vacation","2026-11-10","2026-11-13",P],[B,"Vacation","2026-11-30","2026-11-30",P],[B,"Vacation","2026-12-02","2026-12-02",P],
+[B,"Vacation","2026-12-21","2026-12-24",P],[B,"Vacation","2026-12-28","2026-12-31",P],[F,"Vacation","2026-05-13","2026-06-23",A]
 ];
+
