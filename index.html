@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Leave Tracker</title>
+<link rel="stylesheet" href="styles.css"></head><body><div class="wrap">
+<h1 id="ttl">Team Leave Tracker</h1><div class="sub">Barclays · availability by day, leave log and summary</div>
+<div class="tabs"><button data-t="cal" class="on">Calendar &amp; availability</button><button data-t="log">Leave log</button><button data-t="sum">Summary</button></div>
+
+<section id="cal">
+<div class="bar"><button id="pv">‹</button><select id="mo"></select><select id="yr"></select><button id="nx">›</button>
+<label><input type="checkbox" id="pend" checked> Count pending as absent</label></div>
+<div class="grid"><div class="card"><div class="cal" id="calg"></div></div>
+<div class="card" id="side"></div></div>
+<div class="note">Weekends are treated as non-working. Public holidays aren't in the data, so they show as working days.</div>
+</section>
+
+<section id="log" class="hide">
+<div class="card" style="margin-bottom:12px"><h3 id="fh">Add leave</h3><div class="bar">
+<select id="ar"></select><select id="at"></select><input type="date" id="as"><input type="date" id="ae"><select id="ast"><option>Approved</option><option>Pending</option></select><button id="add" class="on" style="background:var(--ac);color:#fff;border-color:var(--ac)">Add</button><button id="cancel" class="hide">Cancel</button></div>
+<div class="note">Working days are calculated automatically (Mon–Fri). Changes are saved in this browser. Use "Download data.js" to make them permanent.</div></div>
+<div class="bar"><select id="fr"></select><select id="ft"><option value="">All types</option></select><select id="fs"><option value="">All statuses</option><option>Approved</option><option>Pending</option></select><span style="flex:1"></span><button id="dl">Download data.js</button><button id="rs">Reset to original</button></div>
+<div class="card tw"><table><thead><tr><th>Resource</th><th>Leave type</th><th>Start</th><th>End</th><th>Working days</th><th>Status</th><th>Actions</th></tr></thead><tbody id="lb"></tbody></table></div>
+</section>
+
+<section id="sum" class="hide"><div class="card tw"><table><thead id="sh"></thead><tbody id="sb"></tbody></table></div>
+<div class="note">Working days by leave type. Approved / Pending shown separately.</div></section>
+</div>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body></html>
