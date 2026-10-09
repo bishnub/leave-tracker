@@ -3,28 +3,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Leave Tracker</title>
 <link rel="stylesheet" href="styles.css"></head><body><div class="wrap">
-<h1 id="ttl">Team Leave Tracker</h1><div class="sub">Barclays · availability by day, leave log and summary</div>
-<div class="tabs"><button data-t="cal" class="on">Calendar &amp; availability</button><button data-t="log">Leave log</button><button data-t="sum">Summary</button></div>
+<h1 id="ttl">Team Leave Tracker</h1><div class="sub" id="sub"></div>
+<div class="bar"><label>Team <select id="tm"></select></label></div>
+<div class="tabs"><button data-t="cal" class="on">Calendar &amp; availability</button><button data-t="log">Leave log</button><button data-t="hol">Public holidays</button><button data-t="sum">Summary</button></div>
 
 <section id="cal">
 <div class="bar"><button id="pv">‹</button><select id="mo"></select><select id="yr"></select><button id="nx">›</button>
 <label><input type="checkbox" id="pend" checked> Count pending as absent</label></div>
 <div class="grid"><div class="card"><div class="cal" id="calg"></div></div>
 <div class="card" id="side"></div></div>
-<div class="note">Weekends are treated as non-working. Public holidays aren't in the data, so they show as working days.</div>
+<div class="note">Weekends are treated as non-working (matches your Working Days counts). Public holidays come from the Public holidays tab: set each person's location there. Someone on a public holiday is counted as on holiday, not absent.</div>
 </section>
 
 <section id="log" class="hide">
 <div class="card" style="margin-bottom:12px"><h3 id="fh">Add leave</h3><div class="bar">
 <select id="ar"></select><select id="at"></select><input type="date" id="as"><input type="date" id="ae"><select id="ast"><option>Approved</option><option>Pending</option></select><button id="add" class="on" style="background:var(--ac);color:#fff;border-color:var(--ac)">Add</button><button id="cancel" class="hide">Cancel</button></div>
-<div class="note">Working days are calculated automatically (Mon–Fri). Changes are saved in this browser. Use "Download data.js" to make them permanent.</div></div>
+<div class="note">Working days are calculated automatically (Mon–Fri, minus the resource's public holidays). Changes are saved in this browser. Use "Download data.js" to make them permanent.</div></div>
 <div class="bar"><select id="fr"></select><select id="ft"><option value="">All types</option></select><select id="fs"><option value="">All statuses</option><option>Approved</option><option>Pending</option></select><span style="flex:1"></span><button id="dl">Download data.js</button><button id="rs">Reset to original</button></div>
-<div class="card tw"><table><thead><tr><th>Resource</th><th>Leave type</th><th>Start</th><th>End</th><th>Working days</th><th>Status</th><th>Actions</th></tr></thead><tbody id="lb"></tbody></table></div>
+<div class="card tw"><table><thead><tr><th>Resource</th><th>Team</th><th>Leave type</th><th>Start</th><th>End</th><th>Working days</th><th>Status</th><th>Actions</th></tr></thead><tbody id="lb"></tbody></table></div>
+</section>
+
+<section id="hol" class="hide">
+<div class="g2">
+<div class="card"><h3>Resource locations</h3><div class="tw"><table><thead><tr><th>Resource</th><th>Team</th><th>Location</th></tr></thead><tbody id="lcb"></tbody></table></div>
+<div class="bar" style="margin-top:10px"><input id="nl" placeholder="New location, e.g. India"><button id="anl">Add location</button></div></div>
+<div class="card"><h3 id="hh">Add public holiday</h3><div class="bar"><select id="hl"></select><input type="date" id="hd"><input id="hn" placeholder="Holiday name"><button id="hadd" style="background:var(--ac);color:#fff;border-color:var(--ac)">Add</button><button id="hcancel" class="hide">Cancel</button></div>
+<h3>Bulk add to the location selected above</h3><textarea id="hbulk" rows="5" placeholder="One per line: date, name&#10;2026-01-26, Republic Day&#10;15-Aug-2026, Independence Day"></textarea>
+<div class="bar" style="margin-top:8px"><button id="hbtn">Add all lines</button></div></div></div>
+<div class="bar"><select id="hf"></select></div>
+<div class="card tw"><table><thead><tr><th>Date</th><th>Day</th><th>Holiday</th><th>Location</th><th>Resources</th><th>Actions</th></tr></thead><tbody id="hbody"></tbody></table></div>
+<div class="note">Leave working days and the Summary exclude weekends and each person's own public holidays. Holidays falling on a weekend have no effect.</div>
 </section>
 
 <section id="sum" class="hide"><div class="card tw"><table><thead id="sh"></thead><tbody id="sb"></tbody></table></div>
-<div class="note">Working days by leave type. Approved / Pending shown separately.</div></section>
+<div class="note">Working days by leave type (weekends and public holidays excluded). Approved / Pending shown separately.</div></section>
 </div>
-<script src="data.js"></script>
-<script src="app.js"></script>
+<script charset="utf-8" src="data.js"></script>
+<script charset="utf-8" src="app.js"></script>
 </body></html>

@@ -1,6 +1,6 @@
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f7f9;--card:#fff;--tx:#1c2430;--mu:#6b7686;--bd:#e1e5ea;--ac:#1d5fd1;--ok:#1f8a4c;--okb:#e3f4ea;--ab:#fde8e6;--ae:#c0392b;--pe:#fff3d6;--pt:#a36a00;--we:#eef0f3}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161c;--card:#1b212a;--tx:#e6e9ee;--mu:#93a0b1;--bd:#2c3441;--ac:#6ea2ff;--ok:#5fd18b;--okb:#173626;--ab:#3d1f1c;--ae:#ff8a7a;--pe:#3a2f12;--pt:#f0c05a;--we:#171c23}}
-:root[data-theme="dark"]{--bg:#12161c;--card:#1b212a;--tx:#e6e9ee;--mu:#93a0b1;--bd:#2c3441;--ac:#6ea2ff;--ok:#5fd18b;--okb:#173626;--ab:#3d1f1c;--ae:#ff8a7a;--pe:#3a2f12;--pt:#f0c05a;--we:#171c23}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f7f9;--card:#fff;--tx:#1c2430;--mu:#6b7686;--bd:#e1e5ea;--ac:#1d5fd1;--ok:#1f8a4c;--okb:#e3f4ea;--ab:#fde8e6;--ae:#c0392b;--pe:#fff3d6;--pt:#a36a00;--hb:#e4edff;--ht:#1d5fd1;--we:#eef0f3}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161c;--card:#1b212a;--tx:#e6e9ee;--mu:#93a0b1;--bd:#2c3441;--ac:#6ea2ff;--ok:#5fd18b;--okb:#173626;--ab:#3d1f1c;--ae:#ff8a7a;--pe:#3a2f12;--pt:#f0c05a;--hb:#1c2b4a;--ht:#8fb4ff;--we:#171c23}}
+:root[data-theme="dark"]{--bg:#12161c;--card:#1b212a;--tx:#e6e9ee;--mu:#93a0b1;--bd:#2c3441;--ac:#6ea2ff;--ok:#5fd18b;--okb:#173626;--ab:#3d1f1c;--ae:#ff8a7a;--pe:#3a2f12;--pt:#f0c05a;--hb:#1c2b4a;--ht:#8fb4ff;--we:#171c23}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -29,3 +29,7 @@ h3{margin:12px 0 4px;font-size:14px}h3:first-child{margin-top:0}
 .tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:560px}
 th,td{padding:7px 8px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}th{color:var(--mu);font-weight:600;font-size:12px}
 .hide{display:none}.note{font-size:12px;color:var(--mu);margin-top:8px}
+.c.hl{background:var(--hb);color:var(--ht)}.pill.Holiday{background:var(--hb);color:var(--ht)}
+textarea{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;width:100%;resize:vertical}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px}
+@media(max-width:800px){.g2{grid-template-columns:1fr}}
