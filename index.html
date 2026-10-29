@@ -18,15 +18,17 @@
 <section id="log" class="hide">
 <div class="card" style="margin-bottom:12px"><h3 id="fh">Add leave</h3><div class="bar">
 <select id="ar"></select><select id="at"></select><input type="date" id="as"><input type="date" id="ae"><select id="ast"><option>Approved</option><option>Pending</option></select><button id="add" class="on" style="background:var(--ac);color:#fff;border-color:var(--ac)">Add</button><button id="cancel" class="hide">Cancel</button></div>
-<div class="note">Working days are calculated automatically (Mon–Fri, minus the resource's public holidays). Changes are saved in this browser. Use "Download data.js" to make them permanent.</div></div>
-<div class="bar"><select id="fr"></select><select id="ft"><option value="">All types</option></select><select id="fs"><option value="">All statuses</option><option>Approved</option><option>Pending</option></select><span style="flex:1"></span><button id="dl">Download data.js</button><button id="rs">Reset to original</button></div>
+<div class="note">Working days are calculated automatically (Mon–Fri, minus the resource's public holidays). Changes are saved to the shared database and everyone sees them.</div></div>
+<div class="bar"><select id="fr"></select><select id="ft"><option value="">All types</option></select><select id="fs"><option value="">All statuses</option><option>Approved</option><option>Pending</option></select><span style="flex:1"></span><a id="exp" href="#"><button type="button">Export CSV</button></a></div>
 <div class="card tw"><table><thead><tr><th>Resource</th><th>Team</th><th>Leave type</th><th>Start</th><th>End</th><th>Working days</th><th>Status</th><th>Actions</th></tr></thead><tbody id="lb"></tbody></table></div>
 </section>
 
 <section id="hol" class="hide">
 <div class="g2">
-<div class="card"><h3>Resource locations</h3><div class="tw"><table><thead><tr><th>Resource</th><th>Team</th><th>Location</th></tr></thead><tbody id="lcb"></tbody></table></div>
-<div class="bar" style="margin-top:10px"><input id="nl" placeholder="New location, e.g. India"><button id="anl">Add location</button></div></div>
+<div class="card"><h3>People &amp; locations</h3><div class="tw"><table><thead><tr><th>Resource</th><th>Team</th><th>Location</th><th></th></tr></thead><tbody id="lcb"></tbody></table></div>
+<div class="bar" style="margin-top:10px"><input id="nl" placeholder="New location, e.g. India"><button id="anl">Add location</button></div>
+<div class="bar"><input id="pn" placeholder="New person's full name"><select id="pt"></select><select id="pl"></select><button id="ap">Add person</button></div>
+<div class="bar"><input id="nt" placeholder="New team name"><button id="at2">Add team</button></div></div>
 <div class="card"><h3 id="hh">Add public holiday</h3><div class="bar"><select id="hl"></select><input type="date" id="hd"><input id="hn" placeholder="Holiday name"><button id="hadd" style="background:var(--ac);color:#fff;border-color:var(--ac)">Add</button><button id="hcancel" class="hide">Cancel</button></div>
 <h3>Bulk add to the location selected above</h3><textarea id="hbulk" rows="5" placeholder="One per line: date, name&#10;2026-01-26, Republic Day&#10;15-Aug-2026, Independence Day"></textarea>
 <div class="bar" style="margin-top:8px"><button id="hbtn">Add all lines</button></div></div></div>
@@ -38,6 +40,6 @@
 <section id="sum" class="hide"><div class="card tw"><table><thead id="sh"></thead><tbody id="sb"></tbody></table></div>
 <div class="note">Working days by leave type (weekends and public holidays excluded). Approved / Pending shown separately.</div></section>
 </div>
-<script charset="utf-8" src="data.js"></script>
+<script src="config.js"></script>
 <script charset="utf-8" src="app.js"></script>
 </body></html>

@@ -1,10 +1,13 @@
-// app.js - logic and rendering (reads TEAMS, RES, TEAM_OF, LOCATION_OF, HOLIDAYS, TYPES, A, P, LEAVE_DATA from data.js)
-
-const KEY="leaveData_v1";let nid=1,editId=null;
-const seed=()=>LEAVE_DATA.map(([r,t,s,e,st])=>({r,t,s,e,st}));
-const stored=()=>{try{const s=JSON.parse(localStorage.getItem(KEY));if(Array.isArray(s))return s}catch(e){}return null};
-let L=(stored()||seed()).map(o=>({...o,id:nid++}));
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(L.map(({id,...r})=>r)))}catch(_){}};
+// app.js - UI logic. All data is loaded from, and saved to, the server database (see server.js).
+const A="Approved",P="Pending";
+let TEAMS={},RES=[],TEAM_OF={},TYPES=[],L=[],M={loc:{},hol:{}},editId=null,editH=null;
+const derive=()=>{RES=Object.values(TEAMS).flat();TEAM_OF=Object.fromEntries(Object.entries(TEAMS).flatMap(([t,m])=>m.map(n=>[n,t])))};
+async function api(method,url,body){
+ try{const r=await fetch((window.API_BASE||"")+url,{method,headers:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.statusText);return j}
+ catch(e){alert("Something went wrong: "+e.message);return null}}
+const apply=d=>{TEAMS=d.teams;derive();TYPES=d.types;L=d.leave;M={loc:d.locationOf,hol:d.holidays}};
+async function reload(){const d=await api("GET","/api/data");if(!d)return false;apply(d);return true}
 const $=id=>document.getElementById(id);
 const dt=s=>new Date(s+"T00:00:00Z"),iso=d=>d.toISOString().slice(0,10),we=d=>[0,6].includes(d.getUTCDay());
 const MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -20,11 +23,6 @@ function goto(y,m){year=y;cur=m;const t=todayIso();sel=(t.slice(0,7)===`${y}-${S
 const yrWd=(l,y)=>{const s=l.s<`${y}-01-01`?`${y}-01-01`:l.s,e=l.e>`${y}-12-31`?`${y}-12-31`:l.e;return e<s?0:wdr(s,e,l.r)};
 const DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const MKEY="leaveMeta_v1";let editH=null;
-const meta0=()=>({loc:{...LOCATION_OF},hol:JSON.parse(JSON.stringify(HOLIDAYS))});
-const metaS=()=>{try{const m=JSON.parse(localStorage.getItem(MKEY));if(m&&m.loc&&m.hol)return m}catch(e){}return null};
-let M=metaS()||meta0();
-const saveM=()=>{try{localStorage.setItem(MKEY,JSON.stringify(M))}catch(_){}};
 const locs=()=>[...new Set([...Object.keys(M.hol),...Object.values(M.loc)])].filter(Boolean).sort();
 const holName=(r,day)=>{const l=M.loc[r];if(!l)return null;const h=(M.hol[l]||[]).find(x=>x[0]===day);return h?h[1]:null};
 function wdr(s,e,r){let n=0;for(let d=dt(s);d<=dt(e);d.setUTCDate(d.getUTCDate()+1))if(!we(d)&&!holName(r,iso(d)))n++;return n}
@@ -60,14 +58,7 @@ function logr(){
 const refresh=()=>{logr();render();summ();holr()};
 function edit(id){const l=L.find(x=>x.id===id);editId=id;$("ar").value=l.r;$("at").value=l.t;$("as").value=l.s;$("ae").value=l.e;$("ast").value=l.st;$("fh").textContent="Edit leave";$("add").textContent="Save changes";$("cancel").classList.remove("hide");$("fh").scrollIntoView({behavior:"smooth"})}
 function resetForm(){editId=null;$("as").value="";$("ae").value="";$("fh").textContent="Add leave";$("add").textContent="Add";$("cancel").classList.add("hide")}
-function del(id){const l=L.find(x=>x.id===id);if(!confirm(`Delete ${l.t} for ${l.r} (${fmt(l.s)} to ${fmt(l.e)})?`))return;L=L.filter(x=>x.id!==id);if(editId===id)resetForm();save();refresh()}
-function metaTxt(){
- const hol=Object.entries(M.hol).sort().map(([l,a])=>"  "+JSON.stringify(l)+": "+(a.length?"[\n"+[...a].sort().map(x=>"    "+JSON.stringify(x)).join(",\n")+"\n  ]":"[]")).join(",\n");
- return "const LOCATION_OF = "+JSON.stringify(M.loc,null,2)+";\nconst HOLIDAYS = {\n"+hol+"\n};\n"}
-function download(){
- const rows=[...L].sort((a,b)=>a.r.localeCompare(b.r)||a.s.localeCompare(b.s)).map(l=>" "+JSON.stringify([l.r,l.t,l.s,l.e,l.st])).join(",\n");
- const txt="// data.js - exported "+new Date().toISOString().slice(0,10)+"\nconst TEAMS = "+JSON.stringify(TEAMS,null,2)+";\nconst RES = Object.values(TEAMS).flat();\nconst TEAM_OF = Object.fromEntries(Object.entries(TEAMS).flatMap(([t, m]) => m.map(n => [n, t])));\n"+metaTxt()+"const TYPES = "+JSON.stringify(TYPES)+";\nconst A = \"Approved\", P = \"Pending\";\n// [resource, type, start, end, status]\nconst LEAVE_DATA = [\n"+rows+"\n];\n";
- const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/javascript"}));a.download="data.js";a.click()}
+async function del(id){const l=L.find(x=>x.id===id);if(!confirm(`Delete ${l.t} for ${l.r} (${fmt(l.s)} to ${fmt(l.e)})?`))return;if(!await api("DELETE","/api/leave/"+id))return;L=L.filter(x=>x.id!==id);if(editId===id)resetForm();refresh()}
 function summ(){
  $("sh").innerHTML="<tr><th>Resource</th><th>Team</th>"+TYPES.map(t=>`<th>${t}</th>`).join("")+"<th>Approved</th><th>Pending</th><th>Total</th></tr>";
  $("sb").innerHTML=visRes().map(r=>{const ls=L.filter(l=>l.r===r&&inYear(l,year)),sm=f=>ls.filter(f).reduce((a,l)=>a+yrWd(l,year),0);
@@ -84,40 +75,61 @@ function holr(){
  const ls=locs(),opt=l=>`<option>${esc(l)}</option>`,hl=$("hl").value,hf=$("hf").value;
  $("hl").innerHTML=ls.map(opt).join("");if(ls.includes(hl))$("hl").value=hl;
  $("hf").innerHTML='<option value="">All locations</option>'+ls.map(opt).join("");if(ls.includes(hf))$("hf").value=hf;
- $("lcb").innerHTML=visRes().map(r=>`<tr><td>${r}</td><td>${TEAM_OF[r]}</td><td><select data-r="${esc(r)}"><option value="">Not set</option>${ls.map(l=>`<option${M.loc[r]===l?" selected":""}>${esc(l)}</option>`).join("")}</select></td></tr>`).join("");
+ const pl=$("pl").value;$("pl").innerHTML='<option value="">Location (optional)</option>'+ls.map(opt).join("");if(ls.includes(pl))$("pl").value=pl;
+ $("lcb").innerHTML=visRes().map(r=>`<tr><td>${r}</td><td>${TEAM_OF[r]}</td><td><select data-r="${esc(r)}"><option value="">Not set</option>${ls.map(l=>`<option${M.loc[r]===l?" selected":""}>${esc(l)}</option>`).join("")}</select></td><td><button data-rm="${esc(r)}">Remove</button></td></tr>`).join("");
  const f=$("hf").value,rows=[];
  Object.entries(M.hol).forEach(([l,a])=>{if(!f||f===l)a.forEach(([d,n])=>rows.push({l,d,n}))});
  rows.sort((a,b)=>a.d.localeCompare(b.d)||a.l.localeCompare(b.l));
  $("hbody").innerHTML=rows.map(x=>`<tr><td>${fmt(x.d)}</td><td>${DN[dt(x.d).getUTCDay()]}${we(dt(x.d))?' <span class="mu">(weekend)</span>':""}</td><td>${esc(x.n)}</td><td>${esc(x.l)}</td><td class="mu">${RES.filter(r=>M.loc[r]===x.l).map(ini).join(", ")||"–"}</td><td><button data-he="${esc(x.l)}|${x.d}">Edit</button> <button data-hx="${esc(x.l)}|${x.d}">Delete</button></td></tr>`).join("")||'<tr><td colspan="6" class="mu">No public holidays yet. Add a location, then add holidays.</td></tr>';
- document.querySelectorAll("[data-r]").forEach(s=>s.onchange=()=>{if(s.value)M.loc[s.dataset.r]=s.value;else delete M.loc[s.dataset.r];saveM();refresh()});
+ document.querySelectorAll("[data-r]").forEach(s=>s.onchange=async()=>{const r=s.dataset.r,v=s.value;if(!await api("PUT","/api/resources/location",{name:r,location:v||null}))return;if(v)M.loc[r]=v;else delete M.loc[r];refresh()});
+ document.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>removePerson(b.dataset.rm));
  document.querySelectorAll("[data-he]").forEach(b=>b.onclick=()=>hedit(b.dataset.he));
  document.querySelectorAll("[data-hx]").forEach(b=>b.onclick=()=>hdel(b.dataset.hx))}
 function hedit(k){const [l,d]=k.split("|"),x=M.hol[l].find(y=>y[0]===d);editH=k;$("hl").value=l;$("hd").value=d;$("hn").value=x[1];$("hh").textContent="Edit public holiday";$("hadd").textContent="Save changes";$("hcancel").classList.remove("hide")}
 function hreset(){editH=null;$("hd").value="";$("hn").value="";$("hh").textContent="Add public holiday";$("hadd").textContent="Add";$("hcancel").classList.add("hide")}
-function hdel(k){const [l,d]=k.split("|");if(!confirm(`Delete the ${fmt(d)} holiday for ${l}?`))return;M.hol[l]=M.hol[l].filter(x=>x[0]!==d);if(editH===k)hreset();saveM();refresh()}
+async function hdel(k){const [l,d]=k.split("|");if(!confirm(`Delete the ${fmt(d)} holiday for ${l}?`))return;if(!await api("POST","/api/holidays/delete",{location:l,date:d}))return;M.hol[l]=M.hol[l].filter(x=>x[0]!==d);if(editH===k)hreset();refresh()}
+function buildTeams(){
+ if(team&&!TEAMS[team])team="";
+ $("tm").innerHTML='<option value="">All teams</option>'+Object.keys(TEAMS).map(t=>`<option value="${esc(t)}">${esc(t)} (${TEAMS[t].length})</option>`).join("");$("tm").value=team;
+ $("pt").innerHTML=Object.keys(TEAMS).map(t=>`<option>${esc(t)}</option>`).join("")}
+async function reloadAll(){if(await reload()){buildTeams();fillRes();refresh()}}
+async function addPerson(){const n=$("pn").value.trim(),t=$("pt").value,l=$("pl").value;if(!n)return alert("Enter the person's full name");if(!t)return alert("Add a team first");
+ if(!await api("POST","/api/resources",{name:n,team:t,location:l||null}))return;$("pn").value="";await reloadAll()}
+async function addTeam(){const n=$("nt").value.trim();if(!n)return;if(!await api("POST","/api/teams",{name:n}))return;$("nt").value="";await reloadAll()}
+async function removePerson(r){if(!confirm(`Remove ${r}? All of their leave records will be deleted too.`))return;if(!await api("POST","/api/resources/remove",{name:r}))return;await reloadAll()}
+async function boot(){
+ $("exp").href=(window.API_BASE||"")+"/api/export.csv";
+ if(!await reload()){$("sub").textContent="Cannot load data. Check that you are connected to the company VPN and that config.js points to the API.";return}
+ init();setInterval(poll,60000)}
+async function poll(){ // pick up other people's changes every 60s, unless you are in the middle of an edit
+ if(document.hidden||editId||editH)return;
+ try{const r=await fetch((window.API_BASE||"")+"/api/data");if(!r.ok)return;apply(await r.json());buildTeams();fillRes();refresh()}catch(_){}}
 function init(){
  $("mo").innerHTML=MN.map((m,i)=>`<option value="${i}">${m}</option>`).join("");
- $("tm").innerHTML='<option value="">All teams</option>'+Object.keys(TEAMS).map(t=>`<option value="${t}">${t} (${TEAMS[t].length})</option>`).join("");
+ buildTeams();
  $("tm").onchange=e=>{team=e.target.value;fillRes();if(team&&!editId)$("ar").value=TEAMS[team][0];refresh()};
  fillRes();
- $("anl").onclick=()=>{const v=$("nl").value.trim();if(!v)return;if(!M.hol[v])M.hol[v]=[];$("nl").value="";saveM();refresh();$("hl").value=v};
- $("hadd").onclick=()=>{const l=$("hl").value,d=$("hd").value,n=$("hn").value.trim();if(!l)return alert("Add a location first");if(!d||!n)return alert("Enter a date and a holiday name");
-  if(editH){const [ol,od]=editH.split("|");M.hol[ol]=M.hol[ol].filter(x=>x[0]!==od)}
-  M.hol[l]=(M.hol[l]||[]).filter(x=>x[0]!==d).concat([[d,n]]);saveM();hreset();refresh()};
+ $("anl").onclick=async()=>{const v=$("nl").value.trim();if(!v)return;if(!await api("POST","/api/locations",{name:v}))return;M.hol[v]=M.hol[v]||[];$("nl").value="";refresh();$("hl").value=v};
+ $("hadd").onclick=async()=>{const l=$("hl").value,d=$("hd").value,n=$("hn").value.trim();if(!l)return alert("Add a location first");if(!d||!n)return alert("Enter a date and a holiday name");
+  if(editH){const [ol,od]=editH.split("|");if(!await api("POST","/api/holidays/delete",{location:ol,date:od}))return;M.hol[ol]=M.hol[ol].filter(x=>x[0]!==od)}
+  if(!await api("POST","/api/holidays",{location:l,date:d,name:n}))return;
+  M.hol[l]=(M.hol[l]||[]).filter(x=>x[0]!==d).concat([[d,n]]);hreset();refresh()};
  $("hcancel").onclick=hreset;$("hf").onchange=holr;
- $("hbtn").onclick=()=>{const l=$("hl").value;if(!l)return alert("Add a location first");let ok=0;const bad=[];
-  $("hbulk").value.split(/\n/).map(s=>s.trim()).filter(Boolean).forEach(line=>{const m=line.match(/^([^,\t;]+)[,\t;]\s*(.+)$/),d=m&&normDate(m[1].trim());if(!d){bad.push(line);return}M.hol[l]=(M.hol[l]||[]).filter(x=>x[0]!==d).concat([[d,m[2].trim()]]);ok++});
-  saveM();$("hbulk").value=bad.join("\n");refresh();alert(`${ok} added to ${l}`+(bad.length?`; ${bad.length} line(s) not understood and left in the box`:""))};
+ $("hbtn").onclick=async()=>{const l=$("hl").value;if(!l)return alert("Add a location first");const bad=[],items=[];
+  $("hbulk").value.split(/\n/).map(s=>s.trim()).filter(Boolean).forEach(line=>{const m=line.match(/^([^,\t;]+)[,\t;]\s*(.+)$/),d=m&&normDate(m[1].trim());if(!d){bad.push(line);return}items.push({date:d,name:m[2].trim()})});
+  if(items.length){if(!await api("POST","/api/holidays/bulk",{location:l,items}))return;items.forEach(({date,name})=>{M.hol[l]=(M.hol[l]||[]).filter(x=>x[0]!==date).concat([[date,name]])})}
+  $("hbulk").value=bad.join("\n");refresh();alert(`${items.length} added to ${l}`+(bad.length?`; ${bad.length} line(s) not understood and left in the box`:""))};
  $("at").innerHTML=TYPES.map(t=>`<option>${t}</option>`).join("");$("ft").innerHTML+=TYPES.map(t=>`<option>${t}</option>`).join("");
  $("mo").onchange=e=>goto(year,+e.target.value);$("yr").onchange=e=>goto(+e.target.value,cur);$("pv").onclick=()=>cur?goto(year,cur-1):goto(year-1,11);$("nx").onclick=()=>cur<11?goto(year,cur+1):goto(year+1,0);
  $("pend").onchange=render;["fr","ft","fs"].forEach(i=>$(i).onchange=logr);
  document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));["cal","log","hol","sum"].forEach(s=>$(s).classList.toggle("hide",s!==b.dataset.t));logr();summ();holr()});
-$("add").onclick=()=>{const s=$("as").value,e=$("ae").value||s;if(!s||e<s)return alert("Check the dates");
+$("add").onclick=async()=>{const s=$("as").value,e=$("ae").value||s;if(!s||e<s)return alert("Check the dates");
   const o={r:$("ar").value,t:$("at").value,s,e,st:$("ast").value};
   if(team&&TEAM_OF[o.r]!==team){team=TEAM_OF[o.r];$("tm").value=team;fillRes()}
-  if(editId)Object.assign(L.find(x=>x.id===editId),o);else L.push({...o,id:nid++});
-  save();resetForm();goto(+s.slice(0,4),+s.slice(5,7)-1)};
- $("cancel").onclick=resetForm;$("dl").onclick=download;
- $("rs").onclick=()=>{if(!confirm("Discard all edits and reload the original data.js rows?"))return;try{localStorage.removeItem(KEY)}catch(_){}L=seed().map(o=>({...o,id:nid++}));try{localStorage.removeItem(MKEY)}catch(_){}M=meta0();resetForm();hreset();refresh()};
+  $("add").disabled=true;
+  try{if(editId){if(!await api("PUT","/api/leave/"+editId,o))return;Object.assign(L.find(x=>x.id===editId),o)}
+   else{const r=await api("POST","/api/leave",o);if(!r)return;L.push({...o,id:r.id})}
+   resetForm();goto(+s.slice(0,4),+s.slice(5,7)-1)}finally{$("add").disabled=false}};
+ $("cancel").onclick=resetForm;$("ap").onclick=addPerson;$("at2").onclick=addTeam;
  render();logr();summ();holr()}
-init();
+boot();
